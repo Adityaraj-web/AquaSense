@@ -27,7 +27,7 @@ export default function WaterQualityDashboard() {
         const updated = [...prev.slice(-19), next]; // keep last 20 points
         return updated;
       });
-    }, 15000);
+    }, 60000);
 
     return () => clearInterval(interval);
   }, []);
