@@ -1,19 +1,19 @@
-import { Droplets, Activity, Beaker, Waves } from "lucide-react";
+import { Beaker, Waves, Wind, Zap } from "lucide-react";
 
 export const parameters = [
   {
-    key: "ph",
-    label: "pH",
-    unit: "",
-    icon: Droplets,
+    key: "do",
+    label: "DO",
+    unit: "mg/L",
+    icon: Wind,
     precision: 2,
-    description: "Acidity/alkalinity of water (6.5–8.5 ideal).",
+    description: "The amount of gaseous oxygen dissolved in the water, essential for aquatic life.",
   },
   {
     key: "ec",
     label: "EC",
     unit: "μS/cm",
-    icon: Activity,
+    icon: Zap,
     precision: 0,
     description: "Electrical conductivity—proxy for dissolved salts.",
   },

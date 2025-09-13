@@ -6,49 +6,70 @@ import WaterQualityCard from "../components/WaterQualityCard";
 import DataChart from "../components/DataChart";
 import InfoModal from "../components/InfoModal";
 import { parameters } from "../config/parameters";
-import { generateReading, seedHistory } from "../utils/generateReading";
 import ThemeToggle from "@/components/ThemeToggle";
 import { getRecommendations } from "../utils/recommendations";
-
-
 
 export default function WaterQualityDashboard() {
   const [history, setHistory] = useState([]);
   const [showInfo, setShowInfo] = useState(false);
 
-  // Seed initial history on mount (client only)
   useEffect(() => {
-    const initial = seedHistory(20);
-    setHistory(initial);
+    // 1. Fetch the full history ONCE on initial page load
+    const fetchHistory = async () => {
+      try {
+        const res = await fetch("/api/consentium"); // Gets the full history
+        if (!res.ok) throw new Error("Failed to fetch historical data");
+        const historicalData = await res.json();
+        setHistory(historicalData);
+      } catch (err) {
+        console.error("Error fetching history:", err);
+      }
+    };
 
-    const interval = setInterval(() => {
-      setHistory((prev) => {
-        const next = generateReading(prev[prev.length - 1]);
-        const updated = [...prev.slice(-19), next]; // keep last 20 points
-        return updated;
-      });
-    }, 60000);
+    // 2. Fetch only the LATEST data point every 5 seconds to append to the chart
+    const fetchLatest = async () => {
+      try {
+        const res = await fetch("/api/consentium?live=true"); // The new "live" endpoint
+        if (!res.ok) throw new Error("Failed to fetch live data");
+        const newPoint = await res.json();
+        
+        // Add the new point to the end of the history, keeping the array size limited
+        if (newPoint && newPoint.time) {
+          setHistory((prev) => {
+            // Avoid adding duplicate points if the time is the same as the last one
+            if (prev.length > 0 && prev[prev.length - 1].time === newPoint.time) {
+              return prev;
+            }
+            return [...prev.slice(-49), newPoint]; // Keep the last 50 data points for performance
+          });
+        }
+      } catch (err) {
+        console.error("Error fetching live data:", err);
+      }
+    };
 
-    return () => clearInterval(interval);
+    fetchHistory(); // Run history fetch immediately
+    const interval = setInterval(fetchLatest, 5000); // Poll for live data every 5s
+
+    return () => clearInterval(interval); // Cleanup on component unmount
   }, []);
 
-  const latest = history[history.length - 1];
-  const prev = history[history.length - 2];
+  const latest = history.length > 0 ? history[history.length - 1] : null;
+  const prev = history.length > 1 ? history[history.length - 2] : null;
 
   const getTrend = (key) => {
-    if (!prev || latest?.[key] == null || prev?.[key] == null) return "flat";
-    if (latest[key] > prev[key]) return "up";
-    if (latest[key] < prev[key]) return "down";
+    if (!prev || !latest || latest?.[key] == null || prev?.[key] == null || latest?.[key] === "—" || prev?.[key] === "—") return "flat";
+    if (Number(latest[key]) > Number(prev[key])) return "up";
+    if (Number(latest[key]) < Number(prev[key])) return "down";
     return "flat";
   };
 
-  // Map parameter cards data
   const cards = useMemo(
     () =>
       parameters.map((p) => ({
         title: p.label,
         value:
-          latest && latest[p.key] != null
+          latest && latest[p.key] != null && latest[p.key] !== "—"
             ? Number(latest[p.key]).toFixed(p.precision ?? 2)
             : "—",
         unit: p.unit,
@@ -61,9 +82,7 @@ export default function WaterQualityDashboard() {
 
   return (
     <main className="min-h-screen w-full bg-gray-50 dark:bg-gray-900 p-6">
-      {/* Full-width container */}
       <div className="w-full space-y-8">
-        {/* Header */}
         <header className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
@@ -76,13 +95,8 @@ export default function WaterQualityDashboard() {
           <ThemeToggle />
         </header>
 
-        {/* Water Quality Summary */}
         <WaterQualityCard reading={latest} onInfo={() => setShowInfo(true)} />
-        
-        
 
-
-        {/* Parameter KPI cards */}
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {cards.map((c) => (
             <ParameterCard
@@ -97,16 +111,15 @@ export default function WaterQualityDashboard() {
           ))}
         </section>
 
-        {/* Chart */}
-        <section className="bg-gray-100 dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+        <section className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
           <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
             Real-time Trends
           </h2>
           <div className="w-full h-96">
-            <DataChart data={history} />
+            <DataChart history={history} />
           </div>
         </section>
-        {/* Recommendations Section */}
+
         <section className="bg-white dark:bg-gray-800 rounded-2xl shadow p-6 mb-8">
           <h2 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">
             Smart Recommendations
@@ -117,7 +130,7 @@ export default function WaterQualityDashboard() {
             ))}
           </ul>
         </section>
-        {/* Footer */}
+
         <footer className="text-sm text-gray-500 dark:text-gray-400">
           Last update: {latest?.time ?? "—"}
         </footer>
