@@ -42,26 +42,35 @@ export default function DataChart({ history = [] }) {
               stroke="#ff7300" // A new color
               name="DO (mg/L)" // formerly "pH"
               dot={false}
-              strokeWidth={2}
+              strokeWidth={3}
             />
             
             <Line
               yAxisId="right" // Use the right axis for high values
               type="monotone"
               dataKey="ec"
-              stroke="#8884d8"
+              stroke="yellow"
               name="EC (μS/cm)"
               dot={false}
-              strokeWidth={2}
+              strokeWidth={3}
             />
             <Line
               yAxisId="left" // Use the left axis for lower values
               type="monotone"
               dataKey="turbidity"
-              stroke="#82ca9d"
+              stroke="#ffffff"
               name="Turbidity (NTU)"
               dot={false}
-              strokeWidth={2}
+              strokeWidth={3}
+            />
+            <Line
+              yAxisId="left" // Use the left axis for lower values
+              type="monotone"
+              dataKey="tds"
+              stroke="red"
+              name="TDS (ppm)"
+              dot={false}
+              strokeWidth={3}
             />
             
             {/* Your API isn't sending TDS yet, but this line is ready. */}

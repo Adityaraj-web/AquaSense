@@ -10,12 +10,11 @@ export function getRecommendations(reading) {
 
   // DO range
   if (reading.do !== "—") {
-    if (reading.do < 5) {
-      recs.push("🚨 Critically low Dissolved Oxygen. Increase aeration immediately to support aquatic life.");
-    } else if (reading.do > 12) {
-      recs.push("💨 High Dissolved Oxygen. Generally good, but monitor for signs of gas bubble disease in fish.");
-    } else {
+    if (reading.do < 1) {
       recs.push("🐠 Dissolved Oxygen is at a healthy level for aquatic life.");
+    }
+    else {
+      recs.push("⚠️ Unhealthy Dissolved Oxygen. May stress aquatic life.");
     }
   }
 

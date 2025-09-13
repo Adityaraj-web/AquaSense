@@ -21,7 +21,8 @@ export default function WaterQualityCard({ onInfo }) {
           ph: data.ph ?? data.pH ?? null,
           ec: data.ec ?? data.conductivity ?? null,
           turbidity: data.turbidity ?? data.turb ?? null,
-          tds: data.tds ?? data.temperature ?? null,
+          tds: data.tds ?? data.totalDissolvedSolids ?? null,
+          do: data.do ?? data.dissolvedOxygen ?? null,
         };
 
         setReading(normalized);
@@ -41,7 +42,7 @@ export default function WaterQualityCard({ onInfo }) {
   // If still loading
   if (!reading && !error) {
     return (
-      <div className="p-5 border rounded-xl shadow bg-gray-100 dark:bg-gray-700">
+      <div className="p-5 border rounded-xl shadow bg-blue-800 dark:bg-blue-500">
         <p>Loading live water data...</p>
       </div>
     );
@@ -72,10 +73,10 @@ export default function WaterQualityCard({ onInfo }) {
   }
 
   const statusStyles = {
-    good: "bg-green-100 text-green-800 border-green-300",
-    moderate: "bg-yellow-100 text-yellow-800 border-yellow-300",
-    poor: "bg-red-100 text-red-800 border-red-300",
-    nodata: "bg-gray-100 text-gray-800 border-gray-300",
+    good: "bg-green-200 text-green-800 border-green-300",
+    moderate: "bg-yellow-200 text-yellow-800 border-yellow-300",
+    poor: "bg-red-300 text-red-800 border-red-300",
+    nodata: "bg-blue-500 text-gray-300 border-gray-300",
   };
 
   const statusIcons = {
