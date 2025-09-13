@@ -1,21 +1,45 @@
 import { NextResponse } from "next/server";
 
+// Helper function to dynamically map values based on the board's configuration
+function formatFeed(feed, boardInfo) {
+  const reading = {
+    time: new Date(feed.updated_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
+    // Set default values
+    do: "—",
+    ec: "—",
+    turbidity: "—",
+    tds: "—",
+  };
+
+  // Create a mapping from the parameter name (e.g., "do") to its value key (e.g., "value1")
+  // This makes the mapping case-insensitive by using toLowerCase()
+  const infoMap = {
+    [boardInfo.info1?.toLowerCase()]: 'value1',
+    [boardInfo.info2?.toLowerCase()]: 'value2',
+    [boardInfo.info3?.toLowerCase()]: 'value3',
+    [boardInfo.info4?.toLowerCase()]: 'value4',
+  };
+
+  // Dynamically assign the values based on the map we just created
+  if (infoMap['do'] && feed[infoMap['do']] != null) reading.do = feed[infoMap['do']];
+  if (infoMap['ec'] && feed[infoMap['ec']] != null) reading.ec = feed[infoMap['ec']];
+  if (infoMap['conductivity'] && feed[infoMap['conductivity']] != null) reading.ec = feed[infoMap['conductivity']]; // Handle alternate name
+  if (infoMap['turbidity'] && feed[infoMap['turbidity']] != null) reading.turbidity = feed[infoMap['turbidity']];
+  if (infoMap['tds'] && feed[infoMap['tds']] != null) reading.tds = feed[infoMap['tds']];
+  
+  return reading;
+}
+
 export async function GET(request) {
   try {
-    if (
-      !process.env.CONSENTIUM_BASE_URL ||
-      !process.env.CONSENTIUM_RECEIVE_KEY ||
-      !process.env.CONSENTIUM_BOARD_KEY
-    ) {
+    if (!process.env.CONSENTIUM_BASE_URL || !process.env.CONSENTIUM_RECEIVE_KEY || !process.env.CONSENTIUM_BOARD_KEY) {
       console.warn("Consentium env variables not set");
-      return NextResponse.json([]); 
+      return NextResponse.json([]);
     }
     
-    // Check if the request is asking for only the latest data (e.g., /api/consentium?live=true)
     const { searchParams } = new URL(request.url);
     const isLive = searchParams.get('live') === 'true';
 
-    // Use the "recents=true" parameter when fetching only the latest data point
     const url = isLive
       ? `${process.env.CONSENTIUM_BASE_URL}/getData?recents=true&receiveKey=${process.env.CONSENTIUM_RECEIVE_KEY}&boardKey=${process.env.CONSENTIUM_BOARD_KEY}`
       : `${process.env.CONSENTIUM_BASE_URL}/getData?receiveKey=${process.env.CONSENTIUM_RECEIVE_KEY}&boardKey=${process.env.CONSENTIUM_BOARD_KEY}`;
@@ -24,7 +48,7 @@ export async function GET(request) {
 
     if (!res.ok) {
         console.warn(`Consentium not reachable (status: ${res.status})`);
-        return NextResponse.json(isLive ? {} : []); 
+        return NextResponse.json(isLive ? {} : []);
     }
 
     const responseData = await res.json();
@@ -33,27 +57,24 @@ export async function GET(request) {
         return NextResponse.json(isLive ? {} : []);
     }
     
-    // If "live" is requested, format and return only the latest object
+    // Get the board configuration to understand the data
+    const boardInfo = responseData.board;
+
+    // Handle the "live" request
     if (isLive) {
         const latestFeed = responseData.feeds[0];
-        return NextResponse.json({
-            time: new Date(latestFeed.updated_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
-            ec: latestFeed.value1,
-            turbidity: latestFeed.value2,
-        });
+        const formattedFeed = formatFeed(latestFeed, boardInfo);
+        return NextResponse.json(formattedFeed);
     }
 
-    // If history is requested, format and return the entire array
-    const formattedData = responseData.feeds.map(feed => ({
-        time: new Date(feed.updated_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
-        ec: feed.value1,
-        turbidity: feed.value2,
-    })).reverse(); // Reverse to have time flowing from left to right
+    // Handle the history request
+    const formattedData = responseData.feeds
+      .map(feed => formatFeed(feed, boardInfo))
+      .reverse();
 
     return NextResponse.json(formattedData);
 
   } catch (err) {
-    // Ensure we return the correct empty type based on the request
     const isLiveRequest = new URL(request.url).searchParams.get('live') === 'true';
     console.warn("Consentium fetch failed", err);
     return NextResponse.json(isLiveRequest ? {} : []);
