@@ -3,8 +3,11 @@
 @variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #f8fafc; /* Soft light grey */
+  /* ✨ Sophisticated Light Mode Palette */
+  --background: #f8fafc; 
   --foreground: #0f172a;
+  --card-bg: #ffffff;
+  --card-border: rgba(226, 232, 240, 0.8); /* slate-200 */
 }
 
 .dark {
@@ -18,8 +21,7 @@
 body {
   background-color: var(--background);
   color: var(--foreground);
-  /* ✨ Background Pattern for texture */
-  background-image: radial-gradient(circle at 50% 50%, #1e293b 0%, #020617 100%);
-  min-height: 100vh;
+  /* ✨ Soft radial glow even in light mode */
+  background-image: radial-gradient(circle at 0% 0%, #f0f9ff 0%, #f8fafc 100%);
   transition: all 0.5s ease;
 }
