@@ -9,6 +9,7 @@ function formatFeed(feed, boardInfo) {
     ec: null,
     turbidity: null,
     tds: null,
+    ph: null, // ✨ ADDED: pH initialization
   };
 
   const parameters = [
@@ -16,11 +17,13 @@ function formatFeed(feed, boardInfo) {
     { name: boardInfo.info2, valueKey: 'value2' },
     { name: boardInfo.info3, valueKey: 'value3' },
     { name: boardInfo.info4, valueKey: 'value4' },
+    { name: boardInfo.info5, valueKey: 'value5' }, // ✨ ADDED: Support for 5th sensor (pH)
   ];
 
   // ✨ FIX: Iterate over the parameters to robustly map names to values
   parameters.forEach(param => {
     // Ensure the parameter is actually configured and has a value in the feed
+    // Note: If boardInfo.info5 is undefined, this safely skips it.
     if (!param.name || feed[param.valueKey] == null) {
       return; // Skip this one
     }
@@ -37,6 +40,8 @@ function formatFeed(feed, boardInfo) {
       reading.turbidity = value;
     } else if (paramName.includes('tds')) {
       reading.tds = value;
+    } else if (paramName.includes('ph')) { // ✨ ADDED: pH mapping logic
+      reading.ph = value;
     }
   });
 

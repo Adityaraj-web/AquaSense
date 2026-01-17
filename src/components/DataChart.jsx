@@ -20,9 +20,9 @@ export default function DataChart({ history = [] }) {
         <div className="bg-white/90 dark:bg-slate-900/80 backdrop-blur-md border border-slate-200 dark:border-white/10 p-4 rounded-2xl shadow-xl">
           <p className="text-slate-500 dark:text-slate-400 text-xs font-mono mb-2">{label}</p>
           {payload.map((entry, index) => (
-            <div key={index} className="flex items-center space-x-2 text-sm font-bold" style={{ color: entry.color }}>
-              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
-              <span>{entry.name}: {entry.value}</span>
+            <div key={index} className="flex items-center space-x-2 text-sm font-bold" style={{ color: entry.stroke }}>
+              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.stroke }} />
+              <span className="capitalize">{entry.name}: {entry.value}</span>
             </div>
           ))}
         </div>
@@ -38,25 +38,38 @@ export default function DataChart({ history = [] }) {
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={history} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
             <defs>
+              {/* DO: Sky Blue */}
               <linearGradient id="colorDo" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.4}/>
                 <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0}/>
               </linearGradient>
+              
+              {/* EC: Amber */}
               <linearGradient id="colorEc" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.4}/>
                 <stop offset="95%" stopColor="#f59e0b" stopOpacity={0}/>
               </linearGradient>
+              
+              {/* TDS: Indigo */}
               <linearGradient id="colorTds" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#6366f1" stopOpacity={0.4}/>
                 <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
               </linearGradient>
+              
+              {/* Turbidity: Pink */}
               <linearGradient id="colorTurb" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#ec4899" stopOpacity={0.4}/>
                 <stop offset="95%" stopColor="#ec4899" stopOpacity={0}/>
               </linearGradient>
+
+              {/* ✨ NEW: pH Gradient (Purple) */}
+              <linearGradient id="colorPh" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#a855f7" stopOpacity={0.4}/>
+                <stop offset="95%" stopColor="#a855f7" stopOpacity={0}/>
+              </linearGradient>
             </defs>
 
-            {/* ✨ Grid lines now visible in both modes */}
+            {/* Grid lines */}
             <CartesianGrid 
               strokeDasharray="3 3" 
               vertical={false} 
@@ -72,14 +85,17 @@ export default function DataChart({ history = [] }) {
               className="text-slate-400 dark:text-slate-500" 
             />
             
+            {/* Left Axis: Small Values (pH, DO, Turbidity) */}
             <YAxis 
               yAxisId="left" 
               axisLine={false} 
               tickLine={false} 
               tick={{fill: 'currentColor', fontSize: 10}}
               className="text-slate-400 dark:text-slate-500"
+              domain={[0, 'auto']} 
             />
             
+            {/* Right Axis: Large Values (EC, TDS) */}
             <YAxis 
               yAxisId="right" 
               orientation="right" 
@@ -91,6 +107,7 @@ export default function DataChart({ history = [] }) {
 
             <Tooltip content={<CustomTooltip />} />
 
+            {/* 1. Dissolved Oxygen (Left Axis) */}
             <Area
               yAxisId="left"
               type="monotone"
@@ -102,6 +119,33 @@ export default function DataChart({ history = [] }) {
               dot={false}
               activeDot={{ r: 6, strokeWidth: 0 }}
             />
+
+            {/* 2. pH (Left Axis) - ✨ Added */}
+            <Area
+              yAxisId="left"
+              type="monotone"
+              dataKey="ph"
+              stroke="#a855f7" 
+              strokeWidth={3}
+              fill="url(#colorPh)"
+              name="pH"
+              dot={false}
+              activeDot={{ r: 6, strokeWidth: 0 }}
+            />
+
+            {/* 3. Turbidity (Left Axis) */}
+            <Area
+              yAxisId="left"
+              type="monotone"
+              dataKey="turbidity"
+              stroke="#ec4899"
+              strokeWidth={2}
+              fill="url(#colorTurb)"
+              name="Turbidity"
+              dot={false}
+            />
+
+            {/* 4. EC (Right Axis) */}
             <Area
               yAxisId="right"
               type="monotone"
@@ -113,6 +157,8 @@ export default function DataChart({ history = [] }) {
               dot={false}
               activeDot={{ r: 6, strokeWidth: 0 }}
             />
+
+            {/* 5. TDS (Right Axis) */}
             <Area
               yAxisId="right"
               type="monotone"
@@ -123,16 +169,7 @@ export default function DataChart({ history = [] }) {
               name="TDS"
               dot={false}
             />
-            <Area
-              yAxisId="left"
-              type="monotone"
-              dataKey="turbidity"
-              stroke="#ec4899"
-              strokeWidth={2}
-              fill="url(#colorTurb)"
-              name="Turbidity"
-              dot={false}
-            />
+
           </AreaChart>
         </ResponsiveContainer>
       ) : (

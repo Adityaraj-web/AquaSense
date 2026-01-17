@@ -1,4 +1,4 @@
-import { Beaker, Waves, Wind, Zap } from "lucide-react";
+import { Beaker, Waves, Wind, Zap, Activity } from "lucide-react";
 
 export const parameters = [
   {
@@ -7,7 +7,7 @@ export const parameters = [
     unit: "mg/L",
     icon: Wind,
     precision: 2,
-    description: "The amount of gaseous oxygen dissolved in the water, essential for aquatic life.",
+    description: "The amount of gaseous oxygen dissolved in water.",
   },
   {
     key: "ec",
@@ -31,6 +31,14 @@ export const parameters = [
     unit: "NTU",
     icon: Waves,
     precision: 2,
-    description: "Water clarity—lower is better (<1 NTU ideal).",
+    description: "Water clarity—lower is better (<5 NTU ideal).",
+  },
+  {
+    key: "ph",
+    label: "pH",
+    unit: "pH",
+    icon: Activity,
+    precision: 1,
+    description: "Scale of acidity/alkalinity (0-14). 7 is neutral.",
   },
 ];
